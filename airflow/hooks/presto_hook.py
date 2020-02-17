@@ -22,6 +22,7 @@ from pyhive.exc import DatabaseError
 from requests.auth import HTTPBasicAuth
 
 from airflow.hooks.dbapi_hook import DbApiHook
+import requests
 
 
 class PrestoException(Exception):
@@ -44,9 +45,12 @@ class PrestoHook(DbApiHook):
     def get_conn(self):
         """Returns a connection object"""
         db = self.get_connection(self.presto_conn_id)
+        session = requests.Session()
         reqkwargs = None
         if db.password is not None:
             reqkwargs = {'auth': HTTPBasicAuth(db.login, db.password)}
+        if db.extra_dejson.hasattr('client_tags'):
+            session.headers.update({"X-Presto-Client-Tags":db.extra_dejson.get('client_tags')})
         return presto.connect(
             host=db.host,
             port=db.port,
@@ -55,6 +59,7 @@ class PrestoHook(DbApiHook):
             protocol=db.extra_dejson.get('protocol', 'http'),
             catalog=db.extra_dejson.get('catalog', 'hive'),
             requests_kwargs=reqkwargs,
+            requests_session=session,
             schema=db.schema)
 
     @staticmethod
