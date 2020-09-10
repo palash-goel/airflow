@@ -110,7 +110,7 @@ class ECSOperator(BaseOperator):
             'Running ECS Task - Task definition: %s - on cluster %s',
             self.task_definition, self.cluster
         )
-        self.log.info('ECSOperator overrides: %s', self.overrides)
+        self.log.debug('ECSOperator overrides: %s', self.overrides)
 
         self.client = self.hook.get_client_type(
             'ecs',
